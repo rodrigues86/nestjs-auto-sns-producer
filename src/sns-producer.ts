@@ -17,13 +17,9 @@ const defaultOptions: Partial<SNSProducerOptions> = {
   maxBatchSize: 10,
 };
 
-const MAX_VERBOSE_LOG_COUNT = 10;
-
 export class SNSProducer<T> {
   private readonly awsSns: AWS.SNS;
   private readonly options: SNSProducerOptions<T>;
-
-  private verboseLogCount = 0;
 
   public static readonly SNS_FACTORY = Symbol('SNS_FACTORY');
 
@@ -79,11 +75,8 @@ export class SNSProducer<T> {
     };
 
     try {
-      const results = await this.awsSns.publishBatch(params).promise();
+      await this.awsSns.publishBatch(params).promise();
 
-      const verboseLog = this.verboseLoggingEnabled();
-
-      this.countVerboseLogging();
     } catch (error) {
 
       if (throws) {
@@ -103,16 +96,4 @@ export class SNSProducer<T> {
     }));
   }
 
-  private verboseLoggingEnabled() {
-    return this.options.verboseBeginning && this.verboseLogCount < MAX_VERBOSE_LOG_COUNT;
-  }
-
-  private countVerboseLogging() {
-    if (this.verboseLoggingEnabled()) {
-      this.verboseLogCount++;
-      if (this.verboseLogCount === MAX_VERBOSE_LOG_COUNT) {
-        //this.logger.log('Success messages will be logged as debug from now on');
-      }
-    }
-  }
 }
