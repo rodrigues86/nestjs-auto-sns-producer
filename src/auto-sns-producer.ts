@@ -1,5 +1,5 @@
 import * as AWS from 'aws-sdk';
-import { OnModuleInit, OnModuleDestroy, Provider, Inject } from '@nestjs/common';
+import { OnModuleInit, OnModuleDestroy, Provider, Inject, Logger } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { MessageBatcher } from '@raphaabreu/message-batcher';
 import { PromiseCollector } from '@raphaabreu/promise-collector';
@@ -17,6 +17,7 @@ const defaultOptions: Partial<AutoSNSProducerOptions> = {
 };
 
 export class AutoSNSProducer<T> implements OnModuleInit, OnModuleDestroy {
+  private readonly logger: Logger;
   private readonly batcher: MessageBatcher<T>;
   private readonly promiseCollector = new PromiseCollector();
   private readonly options: AutoSNSProducerOptions<T>;
@@ -53,6 +54,8 @@ export class AutoSNSProducer<T> implements OnModuleInit, OnModuleDestroy {
   ) {
     this.options = { ...defaultOptions, ...options };
 
+    this.logger = new Logger(AutoSNSProducer.getServiceName(options.name || options.eventName));
+
     this.batcher = new MessageBatcher(
       this.options.maxBatchSize,
       this.promiseCollector.wrap((b) => this.publishIgnoringErrors(b)),
@@ -79,10 +82,18 @@ export class AutoSNSProducer<T> implements OnModuleInit, OnModuleDestroy {
   }
 
   onModuleInit() {
+    this.logger.log(
+      'Starting message batcher with batchSize = ${batchSize} and maxBatchIntervalMs = ${maxBatchIntervalMs}ms...',
+      this.options.maxBatchSize,
+      this.options.maxBatchIntervalMs,
+    );
+
     this.batcher.start(this.options.maxBatchIntervalMs);
   }
 
   async onModuleDestroy() {
+    this.logger.log('Stopping message batcher...');
+    
     this.batcher.stop();
     await this.flush();
   }
