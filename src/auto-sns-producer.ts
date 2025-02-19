@@ -77,15 +77,13 @@ export class AutoSNSProducer<T> implements OnModuleInit, OnModuleDestroy {
     try {
       await this.snsProducer.publishBatch(messages);
     } catch (error) {
-      // Do nothing
+      // do nothing
     }
   }
 
   onModuleInit() {
     this.logger.log(
-      'Starting message batcher with batchSize = ${batchSize} and maxBatchIntervalMs = ${maxBatchIntervalMs}ms...',
-      this.options.maxBatchSize,
-      this.options.maxBatchIntervalMs,
+      `Starting message batcher with maxBatchSize = ${this.options.maxBatchSize} and maxBatchIntervalMs = ${this.options.maxBatchIntervalMs}ms...`,
     );
 
     this.batcher.start(this.options.maxBatchIntervalMs);
@@ -93,7 +91,7 @@ export class AutoSNSProducer<T> implements OnModuleInit, OnModuleDestroy {
 
   async onModuleDestroy() {
     this.logger.log('Stopping message batcher...');
-    
+
     this.batcher.stop();
     await this.flush();
   }

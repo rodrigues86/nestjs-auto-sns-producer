@@ -84,12 +84,9 @@ export class SNSProducer<T> {
       const results = await this.awsSns.publishBatch(params).promise();
 
       this.logger.log(
-        `messages are only logged for the first ${MAX_VERBOSE_LOG_COUNT} batches`,
-        'Published ${messageCount} messages to SNS topic ${topicArn}: ${successCount} succeeded, ${failCount} failed.',
-        params.PublishBatchRequestEntries.length,
-        this.options.topicArn,
-        results.Successful.length,
-        results.Failed.length,
+        `Published ${params.PublishBatchRequestEntries.length} messages to SNS topic ${this.options.topicArn}: ${
+          results.Successful?.length || 0
+        } succeeded, ${results.Failed?.length || 0} failed.`,
       );
 
       this.countVerboseLogging();
